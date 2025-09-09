@@ -1,6 +1,5 @@
-const { GoogleGenerativeAIEmbeddings } = require('@langchain/google-genai');
-const { Pinecone } = require('@pinecone-database/pinecone');
 const { GoogleGenAI } = require("@google/genai");
+const {semanticSearch,keywordSearch} = require('../utils/chatUtils');
 
 
 
@@ -52,30 +51,14 @@ async function Chat(req,res){
             return response1.text
         }
         const modifiedPrompt = await modify();
-        console.log("CHAT HISTORY :");
-        console.log(chatHistory);
-        console.log("modified question : " + modifiedPrompt);
-        console.log("\n\n")
+
+        const semanticSearchResults = await semanticSearch(modifiedPrompt);
+        const keywordSearchResults = await keywordSearch(modifiedPrompt);
 
 
-
-        //Embedding the question
-        const embeddings = new GoogleGenerativeAIEmbeddings({
-            model: 'text-embedding-004',
-            });
-        const queryVector = await embeddings.embedQuery(modifiedPrompt);
-
-        // Fetching related chunks from Pinecone Database
-        const pinecone = new Pinecone();
-        const pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX);
-
-        const searchResults = await pineconeIndex.query({
-            topK: 10,
-            vector: queryVector,
-            includeMetadata: true,
-        });
-
-        const context = searchResults.matches.map(match => match.metadata.text).join("\n\n---\n\n");
+        const context1 = semanticSearchResults.matches.map(match => match.metadata.text).join("\n\n---\n\n");
+        const context2 = keywordSearchResults.objects.map(val => val?.properties?.chunkText).join("\n\n---\n\n");
+        const context = context1 + "\n\n---\n\n" + context2;
 
 
         // LLM to generate answer by reading text
