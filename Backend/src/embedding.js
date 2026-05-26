@@ -61,16 +61,15 @@ async function indexDocumentForSemanticSearch(){
     }
 }
 
-indexDocumentForSemanticSearch();
+// indexDocumentForSemanticSearch();
 
 async function indexDocumentForKeywordSearch(){
     try{
         const weaviateURL = process.env.WEAVIATE_URL;
-        const weaviateKey = process.env.WEAVIATE_API_KEY;
+        const weaviateApiKey = process.env.WEAVIATE_API_KEY;
 
         const client = await weaviate.connectToWeaviateCloud(weaviateURL, {
-            authCredentials: new weaviate.ApiKey(weaviateKey),
-            skipInitChecks: true,
+            authCredentials: new weaviate.ApiKey(weaviateApiKey),
         });
 
         const exists = await client.collections.exists("Article"); // Returns a boolean
