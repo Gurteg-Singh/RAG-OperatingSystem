@@ -9,7 +9,8 @@ async function Chat(req,res){
         if(!prompt){
             throw new Error("Please enter a valid prompt");
         }
-
+        // console.log("ORIGINAL PROMPT : " + prompt);
+        // console.log("\n");
 
         //Clarifying user's question 
         const modifyPrompt = new GoogleGenAI({});
@@ -51,6 +52,8 @@ async function Chat(req,res){
             return response1.text
         }
         const modifiedPrompt = await modify();
+        // console.log("MODIFIED PROMPT : " + modifiedPrompt);
+        // console.log("\n");
         
         const semanticSearchResults = await semanticSearch(modifiedPrompt);
         const keywordSearchResults = await keywordSearch(modifiedPrompt);
@@ -59,7 +62,7 @@ async function Chat(req,res){
         const context1 = semanticSearchResults.matches.map(match => match.metadata.text).join("\n\n---\n\n");
         const context2 = keywordSearchResults.objects.map(val => val?.properties?.chunkText).join("\n\n---\n\n");
         const context = context1 + "\n\n---\n\n" + context2;
-        console.log("context geenrated");
+        
 
         // LLM to generate answer by reading text
         const ai = new GoogleGenAI({});
@@ -85,7 +88,8 @@ async function Chat(req,res){
             return response1.text
         }
         const response = await main();
-        
+        // console.log("LLM RESPONSE : " + response);
+        // console.log("\n\n\n\n");
         res.status(200).send(response);
 
         

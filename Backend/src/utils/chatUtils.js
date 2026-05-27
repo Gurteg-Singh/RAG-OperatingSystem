@@ -1,14 +1,15 @@
-const { GoogleGenerativeAIEmbeddings } = require('@langchain/google-genai');
+const {GoogleGenAI} = require("@google/genai");
+// const { GoogleGenerativeAIEmbeddings } = require('@langchain/google-genai');
 const { Pinecone } = require('@pinecone-database/pinecone');
 const weaviate = require("weaviate-client");
 
 async function semanticSearch(modifiedPrompt){
     try{
         //Embedding the question
-        const embeddings = new GoogleGenerativeAIEmbeddings({
-            model: 'gemini-embedding-2-preview',
-            });
-        const queryVector = await embeddings.embedQuery(modifiedPrompt);
+        // const embeddings = new GoogleGenerativeAIEmbeddings({
+        //     model: 'gemini-embedding-2-preview',
+        //     });
+        // const queryVector = await embeddings.embedQuery(modifiedPrompt);
         
         // Fetching related chunks from Pinecone Database
         // const pinecone = new Pinecone();
@@ -20,17 +21,30 @@ async function semanticSearch(modifiedPrompt){
         //     vector: queryVector,
         //     includeMetadata: true,
         // });
-        const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
+        const ai = new GoogleGenAI({
+            apiKey: process.env.GOOGLE_API_KEY,
+        });
 
+        const response = await ai.models.embedContent({
+            model: "gemini-embedding-2",
+            contents: modifiedPrompt,
+            config: {
+                outputDimensionality: 768,
+            },
+        });
+        const queryVector = response.embeddings[0].values;
+
+        const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
         const index = pc.index(process.env.PINECONE_INDEX, process.env.INDEX_HOST);
-        const queryResponse = await index.namespace('__default__').query({
+
+        const queryResponse = await index.namespace('rag-project').query({
             vector: queryVector,
             topK: 10,
             includeValues: false,
             includeMetadata: true,
         });
 
-        console.log("Pinecone fetch succesfull");
+        
         return queryResponse;
     }catch(err){
         console.log(err.message);
@@ -53,7 +67,6 @@ async function keywordSearch(modifiedPrompt){
             limit: 5,
             returnMetadata: ['score']
         });
-        console.log("Pinecone fetch succesfull");
         return response;
         
 
