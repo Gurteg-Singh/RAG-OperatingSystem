@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@google/genai": "^1.15.0",
+    "@google/genai": "^1.52.0",
     "@langchain/community": "^0.3.53",
     "@langchain/core": "^0.3.72",
     "@langchain/google-genai": "^0.2.16",
